@@ -13,6 +13,11 @@
 		0D9633A9246A70BC0096917B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0D9633A7246A70BC0096917B /* Main.storyboard */; };
 		0D9633AB246A70BE0096917B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0D9633AA246A70BE0096917B /* Assets.xcassets */; };
 		0D9633AE246A70BF0096917B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0D9633AC246A70BF0096917B /* LaunchScreen.storyboard */; };
+		0D9633B6246A74F60096917B /* 1.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 0D9633B5246A74F60096917B /* 1.mp4 */; };
+		0D9633B8246A75060096917B /* 2.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 0D9633B7246A75060096917B /* 2.mp4 */; };
+		0D9633BA246A75150096917B /* witcher.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 0D9633B9246A75150096917B /* witcher.jpg */; };
+		0D9633BC246A97B30096917B /* PlayViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D9633BB246A97B30096917B /* PlayViewController.swift */; };
+		0D9633BE246AB5D40096917B /* 3.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 0D9633BD246AB5D40096917B /* 3.mp4 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +29,11 @@
 		0D9633AA246A70BE0096917B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0D9633AD246A70BF0096917B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		0D9633AF246A70BF0096917B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0D9633B5246A74F60096917B /* 1.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.mp4; sourceTree = "<group>"; };
+		0D9633B7246A75060096917B /* 2.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = 2.mp4; sourceTree = "<group>"; };
+		0D9633B9246A75150096917B /* witcher.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = witcher.jpg; sourceTree = "<group>"; };
+		0D9633BB246A97B30096917B /* PlayViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayViewController.swift; sourceTree = "<group>"; };
+		0D9633BD246AB5D40096917B /* 3.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = 3.mp4; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,9 +66,14 @@
 		0D9633A0246A70BB0096917B /* DFVideoBox */ = {
 			isa = PBXGroup;
 			children = (
+				0D9633B9246A75150096917B /* witcher.jpg */,
+				0D9633B5246A74F60096917B /* 1.mp4 */,
+				0D9633B7246A75060096917B /* 2.mp4 */,
+				0D9633BD246AB5D40096917B /* 3.mp4 */,
 				0D9633A1246A70BB0096917B /* AppDelegate.swift */,
 				0D9633A3246A70BB0096917B /* SceneDelegate.swift */,
 				0D9633A5246A70BB0096917B /* ViewController.swift */,
+				0D9633BB246A97B30096917B /* PlayViewController.swift */,
 				0D9633A7246A70BC0096917B /* Main.storyboard */,
 				0D9633AA246A70BE0096917B /* Assets.xcassets */,
 				0D9633AC246A70BF0096917B /* LaunchScreen.storyboard */,
@@ -125,9 +140,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0D9633B8246A75060096917B /* 2.mp4 in Resources */,
 				0D9633AE246A70BF0096917B /* LaunchScreen.storyboard in Resources */,
+				0D9633B6246A74F60096917B /* 1.mp4 in Resources */,
 				0D9633AB246A70BE0096917B /* Assets.xcassets in Resources */,
+				0D9633BA246A75150096917B /* witcher.jpg in Resources */,
 				0D9633A9246A70BC0096917B /* Main.storyboard in Resources */,
+				0D9633BE246AB5D40096917B /* 3.mp4 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -138,6 +157,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0D9633BC246A97B30096917B /* PlayViewController.swift in Sources */,
 				0D9633A6246A70BB0096917B /* ViewController.swift in Sources */,
 				0D9633A2246A70BB0096917B /* AppDelegate.swift in Sources */,
 				0D9633A4246A70BB0096917B /* SceneDelegate.swift in Sources */,
@@ -287,6 +307,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 8MG4PF6BLU;
 				INFOPLIST_FILE = DFVideoBox/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -305,6 +326,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 8MG4PF6BLU;
 				INFOPLIST_FILE = DFVideoBox/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
