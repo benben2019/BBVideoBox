@@ -27,6 +27,8 @@ class ViewController: UIViewController {
     var mutableComposition = AVMutableComposition()
     var mutableVideoComposition: AVMutableVideoComposition?
     
+    var trackDegree: Int = 0
+    
     let activity = UIActivityIndicatorView(style: .medium)
     
     override func viewDidLoad() {
@@ -34,7 +36,7 @@ class ViewController: UIViewController {
         // Do any additional setup after loading the view.
         
         setUpUI()
-        dataSource = ["时长裁剪"]
+        dataSource = ["时长裁剪","旋转"]
     }
     
     fileprivate func setUpUI() {
@@ -74,7 +76,7 @@ extension ViewController: UITableViewDataSource,UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        let asset = AVAsset.init(url: URL(fileURLWithPath: threePath))
+        let asset = AVAsset.init(url: URL(fileURLWithPath: onePath))
         if !asset.isPlayable { return }
         
         activity.startAnimating()
@@ -85,9 +87,81 @@ extension ViewController: UITableViewDataSource,UITableViewDelegate {
 //        let range = CMTimeRangeMake(start: CMTimeMake(value: 3600, timescale: 600), duration: CMTimeMake(value: 3300, timescale: 600))
 //        rangeVideo(range)
         
-        rangeVideo(from: 20, to: 26.4)
+//        rangeVideo(from: 20, to: 26.4)
+        rotateVideo(90)
         
         outPut()
+    }
+}
+
+extension ViewController {
+    
+    func rangeVideo(_ timeRange: CMTimeRange) {
+    
+        // 轨道裁剪
+        for compositionTrack in mutableComposition.tracks(withMediaType: .video) {
+            subTimeRange(compositionTrack: compositionTrack, range: timeRange)
+        }
+        for compositionTrack in mutableComposition.tracks(withMediaType: .audio) {
+            subTimeRange(compositionTrack: compositionTrack, range: timeRange)
+        }
+        
+        duration = timeRange.duration
+    }
+    
+    func rangeVideo(from: Float, to: Float) {
+        if from >= to { fatalError("传入的时间有误！") }
+        let seconds = Float(CMTimeGetSeconds(duration!))
+        let value = Float(duration!.value)
+        let fromTime = CMTimeMake(value: Int64(from / seconds * value), timescale: duration!.timescale)
+        let toTime = CMTimeMake(value: Int64((to - from) / seconds * value), timescale: duration!.timescale)
+        rangeVideo(CMTimeRangeMake(start: fromTime, duration: toTime))
+    }
+    
+    func rotateVideo(_ degress: Int) {
+        for instruction in mutableVideoComposition!.instructions {
+            let ins = instruction as! AVMutableVideoCompositionInstruction
+            let layerInstruction = ins.layerInstructions.first as! AVMutableVideoCompositionLayerInstruction
+            
+            var t1: CGAffineTransform
+            var t2: CGAffineTransform
+            var renderSize: CGSize
+            
+            let originWidth = mutableVideoComposition!.renderSize.width
+            let originHeight = mutableVideoComposition!.renderSize.height
+            
+            // 保证角度在90的倍数 360度范围内
+            let deg = degress - degress % 360 % 90
+            
+            if deg == 90 {
+                t1 = CGAffineTransform(translationX: originHeight, y: 0)
+                renderSize = CGSize(width: originHeight, height: originWidth)
+            } else if deg == 180 {
+                t1 = CGAffineTransform(translationX: originWidth, y: originHeight)
+                renderSize = CGSize(width: originWidth, height: originHeight)
+            } else if deg == 270 {
+                t1 = CGAffineTransform(translationX: 0, y: originWidth)
+                renderSize = CGSize(width: originHeight, height: originWidth)
+            } else {
+                t1 = CGAffineTransform(translationX: 0, y: 0)
+                renderSize = CGSize(width: originWidth, height: originHeight)
+            }
+            
+            t2 = t1.rotated(by: CGFloat(deg / 180) * CGFloat.pi)
+            
+            mutableVideoComposition!.renderSize = renderSize
+            mutableComposition.naturalSize = renderSize
+            
+            var existingTransform: CGAffineTransform = .identity
+            if !layerInstruction.getTransformRamp(for: duration!, start: &existingTransform, end: nil, timeRange: nil) {
+                layerInstruction.setTransform(t2, at: CMTime.zero)
+            } else {
+                let newt = existingTransform.concatenating(t2)
+                layerInstruction.setTransform(newt, at: .zero)
+            }
+            
+            ins.layerInstructions = [layerInstruction]
+        }
     }
 }
 
@@ -111,6 +185,8 @@ extension ViewController {
         }
         // assetVideoTrack!.nominalFrameRate 获取帧率fps
         duration = mutableComposition.duration
+        trackDegree = getDegree(assetVideoTrack!.preferredTransform)
+        mutableComposition.naturalSize = compositionVideoTrack!.naturalSize
         
         let compositionAudioTrack = mutableComposition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
         do {
@@ -131,32 +207,40 @@ extension ViewController {
         
         let videoTrack = mutableComposition.tracks(withMediaType: .video).first!
         let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: videoTrack)
-        layerInstruction.setTransform(.identity, at: .zero)
+        layerInstruction.setTransform(transform(degree: trackDegree, natureSize: assetVideoTrack!.naturalSize), at: .zero)
         
         instruction.layerInstructions = [layerInstruction]
         mutableVideoComposition?.instructions = [instruction]
-    }
-    
-    func rangeVideo(_ timeRange: CMTimeRange) {
-    
-        // 轨道裁剪
-        for compositionTrack in mutableComposition.tracks(withMediaType: .video) {
-            subTimeRange(compositionTrack: compositionTrack, range: timeRange)
-        }
-        for compositionTrack in mutableComposition.tracks(withMediaType: .audio) {
-            subTimeRange(compositionTrack: compositionTrack, range: timeRange)
-        }
         
-        duration = timeRange.duration
+        if trackDegree == 90 || trackDegree == 270 {
+            mutableVideoComposition!.renderSize = .init(width: assetVideoTrack!.naturalSize.height, height: assetVideoTrack!.naturalSize.width)
+        }
     }
     
-    func rangeVideo(from: Float, to: Float) {
-        if from >= to { fatalError("传入的时间有误！") }
-        let seconds = Float(CMTimeGetSeconds(duration!))
-        let value = Float(duration!.value)
-        let fromTime = CMTimeMake(value: Int64(from / seconds * value), timescale: duration!.timescale)
-        let toTime = CMTimeMake(value: Int64((to - from) / seconds * value), timescale: duration!.timescale)
-        rangeVideo(CMTimeRangeMake(start: fromTime, duration: toTime))
+    func transform(degree: Int,natureSize: CGSize) -> CGAffineTransform {
+        if degree == 90 {
+            return CGAffineTransform(a: 0, b: 1, c: -1, d: 0, tx: natureSize.height, ty: 0)
+        } else if degree == 180 {
+            return CGAffineTransform(a: -1, b: 0, c: 0, d: -1, tx: natureSize.width, ty: natureSize.height)
+        } else if degree == 270 {
+            return CGAffineTransform(a: 0, b: -1, c: 1, d: 0, tx: 0, ty: natureSize.width)
+        } else {
+            return .identity
+        }
+    }
+    
+    func getDegree(_ t: CGAffineTransform) -> Int {
+        var degree: Int = 0
+        if t.a == 0 && t.b == 1 && t.c == -1 && t.d == 0 {
+            degree = 90
+        } else if t.a == 0 && t.b == -1 && t.c == 1 && t.d == 0 {
+            degree = 270
+        } else if t.a == -1 && t.b == 0 && t.c == 0 && t.d == -1 {
+            degree = 180
+        } else if t.a == 1 && t.b == 0 && t.c == 0 && t.d == 1 {
+            degree = 0
+        }
+        return degree
     }
     
     func subTimeRange(compositionTrack: AVMutableCompositionTrack, range: CMTimeRange) {
