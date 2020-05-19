@@ -31,21 +31,24 @@ class ViewController: UIViewController {
     
     var assetVideoTrack: AVAssetTrack?
     var assetAudioTrack: AVAssetTrack?
-    var totalDuration: CMTime?
     
     var mutableComposition: AVMutableComposition?
     var cacheComposition: AVMutableComposition?
     var mutableVideoComposition: AVMutableVideoComposition?
     var mutableAudioMix: AVMutableAudioMix?
     
+    // 视频指令数组
     var instructions: [AVMutableVideoCompositionInstruction] = []
+    // 音频指令数组
     var audioMixParams: [AVMutableAudioMixInputParameters] = []
     
     var trackDegree: Int = 0
+    var totalDuration: CMTime?
+    
+    /// 标记是否在执行拼接操作
+    var isAppending = false
     
     let activity = UIActivityIndicatorView(style: .medium)
-    
-    var isAppending = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -124,9 +127,9 @@ extension ViewController: UITableViewDataSource,UITableViewDelegate {
             geerBox(scale: 2)
         case 7:
             // 裁前10s + 旋转90° + 拼接 + 混音 + 变速 + 裁前6s
-            rangeVideo(to: 10).rotateVideo(90).append(R0Path).append(R90Path).mixSound(audioTwoPath).geerBox(scale: 2).rangeVideo(to: 6)
+            rangeVideo(to: 10).rotateVideo(90).append(R0Path).append(R90Path).mixSound(audioTwoPath).geerBox(scale: 2)//.rangeVideo(to: 6)
         default:
-            print("do noting...")
+            print("do nothing...")
         }
         
         outPut()
@@ -206,7 +209,7 @@ extension ViewController {
             
             var existingTransform: CGAffineTransform = .identity
             if !layerInstruction.getTransformRamp(for: totalDuration!, start: &existingTransform, end: nil, timeRange: nil) {
-                layerInstruction.setTransform(t2, at: CMTime.zero)
+                layerInstruction.setTransform(t2, at: .zero)
             } else {
                 let newt = existingTransform.concatenating(t2)
                 layerInstruction.setTransform(newt, at: .zero)
@@ -465,6 +468,12 @@ extension ViewController {
         
         totalDuration = CMTimeMultiplyByFloat64(totalDuration!, multiplier: 1 / Float64(scale))
         
+        // 确保最后一条指令能到视频的最后，否则导出的时候出现报错问题
+        // 例如totalDuration = 14.67334  而lastInstruction的endTime只有14.6716667，此时需要调整lastInstruction的timeRange与totalDuration保持一致
+        print(instructions)
+        if let lastInstruction = instructions.last {
+            lastInstruction.timeRange = CMTimeRangeMake(start: lastInstruction.timeRange.start, duration: CMTimeSubtract(totalDuration!, lastInstruction.timeRange.start))
+        }
         return self
     }
 }
@@ -493,14 +502,6 @@ extension ViewController {
         } catch {
             print(error.localizedDescription)
         }
-        // assetVideoTrack!.nominalFrameRate 获取帧率fps
-        totalDuration = mutableComposition!.duration
-        trackDegree = getDegree(assetVideoTrack!.preferredTransform)
-        mutableComposition!.naturalSize = compositionVideoTrack!.naturalSize
-        
-        if trackDegree % 360 > 0 {
-            performVideoComposition()
-        }
         // 2.3 添加一条音频轨道
         let compositionAudioTrack = mutableComposition!.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
         do {
@@ -508,6 +509,15 @@ extension ViewController {
             try compositionAudioTrack?.insertTimeRange(CMTimeRangeMake(start: .zero, duration: asset.duration), of: assetAudioTrack!, at: .zero)
         } catch {
             print(error.localizedDescription)
+        }
+        
+        // assetVideoTrack!.nominalFrameRate 获取帧率fps
+        totalDuration = mutableComposition!.duration
+        trackDegree = getDegree(assetVideoTrack!.preferredTransform)
+        mutableComposition!.naturalSize = compositionVideoTrack!.naturalSize
+        
+        if trackDegree % 360 > 0 {
+            performVideoComposition()
         }
         
         // 视频拼接的时候用到
@@ -551,13 +561,21 @@ extension ViewController {
         }
         mutableAudioMix?.inputParameters = audioMixParams
     }
-    
+
+    // 矩阵校正
+    // x' = ax + cy + tx     y' = bx + dy + ty
     func transform(degree: Int,natureSize: CGSize) -> CGAffineTransform {
         if degree == 90 {
+//            let t1 = CGAffineTransform(translationX: natureSize.height, y: 0)
+//            let t2 = t1.rotated(by: 90.0 / 180.0 * .pi)
             return CGAffineTransform(a: 0, b: 1, c: -1, d: 0, tx: natureSize.height, ty: 0)
         } else if degree == 180 {
+//            let t1 = CGAffineTransform(translationX: natureSize.width, y: natureSize.height)
+//            let t2 = t1.rotated(by: .pi)
             return CGAffineTransform(a: -1, b: 0, c: 0, d: -1, tx: natureSize.width, ty: natureSize.height)
         } else if degree == 270 {
+//            let t1 = CGAffineTransform(translationX: 0, y: natureSize.width)
+//            let t2 = t1.rotated(by: -90.0 / 180.0 * .pi)
             return CGAffineTransform(a: 0, b: -1, c: 1, d: 0, tx: 0, ty: natureSize.width)
         } else {
             return .identity
