@@ -96,7 +96,7 @@ extension ViewController: UITableViewDataSource,UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
         
         // 获取音视频资源
-        let asset = AVAsset.init(url: URL(fileURLWithPath: naturePath))
+        let asset = AVAsset.init(url: URL(fileURLWithPath: onePath))
         if !asset.isPlayable { return }
         
         activity.startAnimating()
@@ -470,7 +470,7 @@ extension ViewController {
         
         // 确保最后一条指令能到视频的最后，否则导出的时候出现报错问题
         // 例如totalDuration = 14.67334  而lastInstruction的endTime只有14.6716667，此时需要调整lastInstruction的timeRange与totalDuration保持一致
-        print(instructions)
+//        print(instructions)
         if let lastInstruction = instructions.last {
             lastInstruction.timeRange = CMTimeRangeMake(start: lastInstruction.timeRange.start, duration: CMTimeSubtract(totalDuration!, lastInstruction.timeRange.start))
         }
@@ -668,7 +668,7 @@ extension ViewController {
                     self.navigationController?.pushViewController(playVc, animated: true)
                     
                     // 保存到相册
-                    //                    self.saveVideoToAlbum(filePath)
+                    self.saveVideoToAlbum(filePath)
                     
                 case .failed:
                     print("failed: ",exportSession!.error?.localizedDescription as Any)
