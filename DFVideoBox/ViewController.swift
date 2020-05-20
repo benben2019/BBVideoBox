@@ -11,9 +11,10 @@ import AVFoundation
 import Photos
 
 class ViewController: UIViewController {
-
-    let tableView = UITableView(frame: .zero, style: .plain)
+    
     var dataSource = [String]()
+    let tableView = UITableView(frame: .zero, style: .plain)
+    let activity = UIActivityIndicatorView(style: .medium)
     
     let onePath = Bundle.main.path(forResource: "1.mp4", ofType: nil)!
     let twoPath = Bundle.main.path(forResource: "2.mp4", ofType: nil)!
@@ -31,15 +32,17 @@ class ViewController: UIViewController {
     
     var assetVideoTrack: AVAssetTrack?
     var assetAudioTrack: AVAssetTrack?
-    
+    /// 音视频组合对象
     var mutableComposition: AVMutableComposition?
     var cacheComposition: AVMutableComposition?
+    /// 视频画面合成器
     var mutableVideoComposition: AVMutableVideoComposition?
+    /// 音频合成器
     var mutableAudioMix: AVMutableAudioMix?
     
-    // 视频指令数组
+    /// 视频指令集
     var instructions: [AVMutableVideoCompositionInstruction] = []
-    // 音频指令数组
+    /// 音频指令集
     var audioMixParams: [AVMutableAudioMixInputParameters] = []
     
     var trackDegree: Int = 0
@@ -48,14 +51,12 @@ class ViewController: UIViewController {
     /// 标记是否在执行拼接操作
     var isAppending = false
     
-    let activity = UIActivityIndicatorView(style: .medium)
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         title = "Demos"
         setUpUI()
-        dataSource = ["时长裁剪","旋转","加水印","更换声音","视频拼接","混音","变速","组合操作"]
+        dataSource = ["时长裁剪","旋转","加水印","更换声音","混音","变速","视频拼接","组合操作"]
     }
     
     fileprivate func setUpUI() {
@@ -66,10 +67,12 @@ class ViewController: UIViewController {
         view.addSubview(tableView)
         
         tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
-        tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
-        tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        [
+            tableView.topAnchor.constraint(equalTo: view.topAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ].forEach{ $0.isActive = true }
         
         activity.hidesWhenStopped = true
         view.addSubview(activity)
@@ -96,7 +99,7 @@ extension ViewController: UITableViewDataSource,UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
         
         // 获取音视频资源
-        let asset = AVAsset.init(url: URL(fileURLWithPath: onePath))
+        let asset = AVAsset.init(url: URL(fileURLWithPath: naturePath))
         if !asset.isPlayable { return }
         
         activity.startAnimating()
@@ -113,25 +116,27 @@ extension ViewController: UITableViewDataSource,UITableViewDelegate {
         case 1:
             rotateVideo(90)
         case 2:
-//            addWateMark(image: UIImage(named: "witcher")!, relativeRect: .init(x: 0.6, y: 0.2, width: 0.3, height: 0))
+            addWateMark(image: UIImage(named: "witcher")!, relativeRect: .init(x: 0.6, y: 0.2, width: 0.3, height: 0))
 //            let gifUrl = URL(string: "http://imgsrc.baidu.com/forum/w=580/sign=daa65c96d200baa1ba2c47b37711b9b1/d51572f082025aafe194efb1f8edab64034f1a2f.jpg")!
-            let gifUrl = URL(fileURLWithPath: Bundle.main.path(forResource: "haicao.gif", ofType: nil)!)
-            addWaterMark(gifUrl,relativeRect: .init(x: 0.6, y: 0.2, width: 0.3, height: 0))
+//            let gifUrl = URL(fileURLWithPath: Bundle.main.path(forResource: "haicao.gif", ofType: nil)!)
+//            addWaterMark(gifUrl,relativeRect: .init(x: 0.6, y: 0.2, width: 0.3, height: 0))
         case 3:
             replaceAudio(audioTwoPath)
         case 4:
-            append(R180Path)
-        case 5:
             mixSound(audioTwoPath,at: 3)
-        case 6:
+        case 5:
             geerBox(scale: 2)
+        case 6:
+            append(R180Path)
         case 7:
             // 裁前10s + 旋转90° + 拼接 + 混音 + 变速 + 裁前6s
             rangeVideo(to: 10).rotateVideo(90).append(R0Path).append(R90Path).mixSound(audioTwoPath).geerBox(scale: 2)//.rangeVideo(to: 6)
         default:
             print("do nothing...")
         }
-        
+//        print("😀合成完毕！即将输出..")
+//        print(mutableComposition!.tracks(withMediaType: .video))
+//        print(mutableComposition!.tracks(withMediaType: .audio))
         outPut()
     }
 }
@@ -262,8 +267,8 @@ extension ViewController {
         parentLayer.addSublayer(videoLayer)
         parentLayer.addSublayer(waterLayer)
 //        parentLayer.addSublayer(textLayer)
-        
-        mutableVideoComposition?.animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videoLayer, in: parentLayer)
+        let animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videoLayer, in: parentLayer)
+        mutableVideoComposition?.animationTool = animationTool
         return self
     }
     
@@ -317,8 +322,9 @@ extension ViewController {
         if !FileManager.default.fileExists(atPath: audioPath) { return self }
         let audioAsset = AVURLAsset(url: URL(fileURLWithPath: audioPath))
         guard audioAsset.isPlayable else { return self }
-        let audioTrack = mutableComposition?.tracks(withMediaType: .audio).first
-        mutableComposition?.removeTrack(audioTrack!)
+        mutableComposition?.tracks(withMediaType: .audio).forEach({ (audioTrack) in
+            mutableComposition?.removeTrack(audioTrack)
+        })
         
         let minDuration = CMTimeMinimum(audioAsset.duration, totalDuration!)
         for track in audioAsset.tracks(withMediaType: .audio) {
@@ -423,7 +429,7 @@ extension ViewController {
         }
         
         // 从音频资源中取出音频
-        let audioTrack = mixAeest.tracks(withMediaType: .audio).first
+        let mixAudioTrack = mixAeest.tracks(withMediaType: .audio).first
         // 添加一条音频轨道
         let compositionAudioTrack = mutableComposition?.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
         // 音频轨道插入音频，且设置时间点
@@ -431,13 +437,13 @@ extension ViewController {
         let duration = CMTimeSubtract(CMTimeMinimum(endPoint, totalDuration!), insertTime)
         
         do {
-            try compositionAudioTrack?.insertTimeRange(CMTimeRange(start: .zero, duration: duration), of: audioTrack!, at: insertTime)
+            try compositionAudioTrack?.insertTimeRange(CMTimeRange(start: .zero, duration: duration), of: mixAudioTrack!, at: insertTime)
         } catch {
             print(error.localizedDescription)
         }
         
         // 设置混音音量
-        let mixParam = AVMutableAudioMixInputParameters(track: audioTrack)
+        let mixParam = AVMutableAudioMixInputParameters(track: mixAudioTrack)
         mixParam.setVolume(mixVolume, at: insertTime)
         audioMixParams.append(mixParam)
         
@@ -447,14 +453,6 @@ extension ViewController {
     
     @discardableResult
     func geerBox(scale: Int64) -> Self {
-        
-        // 处理视频指令
-        var insertPoint: CMTime = .zero
-        for instruction in instructions {
-            let duration = instruction.timeRange.duration
-            instruction.timeRange = CMTimeRangeMake(start: insertPoint, duration: CMTime(value: duration.value / scale, timescale: duration.timescale))
-            insertPoint = CMTimeAdd(instruction.timeRange.start, instruction.timeRange.duration)
-        }
         
         // 处理视频
         mutableComposition?.tracks(withMediaType: .video).forEach({ (videoTrack) in
@@ -467,6 +465,14 @@ extension ViewController {
         })
         
         totalDuration = CMTimeMultiplyByFloat64(totalDuration!, multiplier: 1 / Float64(scale))
+        
+        // 处理视频指令
+        var insertPoint: CMTime = .zero
+        for instruction in instructions {
+            let duration = instruction.timeRange.duration
+            instruction.timeRange = CMTimeRangeMake(start: insertPoint, duration: CMTime(value: duration.value / scale, timescale: duration.timescale))
+            insertPoint = CMTimeAdd(instruction.timeRange.start, instruction.timeRange.duration)
+        }
         
         // 确保最后一条指令能到视频的最后，否则导出的时候出现报错问题
         // 例如totalDuration = 14.67334  而lastInstruction的endTime只有14.6716667，此时需要调整lastInstruction的timeRange与totalDuration保持一致
@@ -482,6 +488,8 @@ extension ViewController {
 extension ViewController {
     
     func perform(with asset: AVAsset) {
+        print(asset.tracks(withMediaType: .video))
+        print(asset.tracks(withMediaType: .audio))
         // 1. 拿到视频资源中的视频和音频
         if asset.tracks(withMediaType: .video).count != 0 {
             assetVideoTrack = asset.tracks(withMediaType: .video).first
@@ -527,20 +535,25 @@ extension ViewController {
     func performVideoComposition() {
         
         if mutableVideoComposition != nil { return }
-        // 1. 创建视频组合对象
+        // 1. 创建视频画面合成器
         mutableVideoComposition = AVMutableVideoComposition()
+        // 2. 设置视频帧率
         mutableVideoComposition?.frameDuration = CMTimeMake(value: 1, timescale: 30) // 30fps
+        // 3. 设置渲染尺寸
         mutableVideoComposition?.renderSize = assetVideoTrack!.naturalSize
-        
+        // 4. 创建视频指令对象并设置时长
         let instruction = AVMutableVideoCompositionInstruction()
         instruction.timeRange = CMTimeRangeMake(start: .zero, duration: mutableComposition!.duration)
-        
+        // 5. 创建视频图层指令对象并进行矩阵校正
         let videoTrack = mutableComposition!.tracks(withMediaType: .video).first!
         let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: videoTrack)
+        // 矩阵校正
         layerInstruction.setTransform(transform(degree: trackDegree, natureSize: assetVideoTrack!.naturalSize), at: .zero)
         
+        // 6. 给视频指令对象的图层指令赋值
         instruction.layerInstructions = [layerInstruction]
         instructions.append(instruction)
+        // 7. 给视频画面合成器的指令集赋值
         mutableVideoComposition?.instructions = instructions
         
         if trackDegree == 90 || trackDegree == 270 {
@@ -551,7 +564,7 @@ extension ViewController {
     func performAudioComposition() {
         
         if mutableAudioMix != nil { return }
-        // 创建音频混合对象
+        // 创建音频合成器
         mutableAudioMix = AVMutableAudioMix()
         
         for audioTrack in mutableComposition!.tracks(withMediaType: .audio) {
@@ -666,16 +679,6 @@ extension ViewController {
                     let playVc = PlayViewController()
                     playVc.filePath = filePath
                     self.navigationController?.pushViewController(playVc, animated: true)
-                    
-                    // 保存到相册
-                    self.saveVideoToAlbum(filePath)
-                    
-                case .failed:
-                    print("failed: ",exportSession!.error?.localizedDescription as Any)
-                case .cancelled:
-                    print("canceled")
-                case .exporting:
-                    print("exporting...")
                 default:
                     break
                 }
