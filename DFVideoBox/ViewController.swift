@@ -116,7 +116,10 @@ extension ViewController: UITableViewDataSource,UITableViewDelegate {
         case 1:
             rotateVideo(90)
         case 2:
-            addWateMark(image: UIImage(named: "witcher")!, relativeRect: .init(x: 0.6, y: 0.2, width: 0.3, height: 0))
+            addWaterMark(UIImage(named: "witcher")!, relativeRect: .init(x: 0.6, y: 0.2, width: 0.3, height: 0))
+//            let imageUrl = URL(string: "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1590041390826&di=5312005de6e1776501fa9a5f766417a1&imgtype=0&src=http%3A%2F%2Fimage.biaobaiju.com%2Fuploads%2F20190928%2F19%2F1569669470-HUgmtnIZPl.jpg")!
+//            addWaterMark(imageUrl, relativeRect: .init(x: 0.6, y: 0.2, width: 0.3, height: 0))
+            
 //            let gifUrl = URL(string: "http://imgsrc.baidu.com/forum/w=580/sign=daa65c96d200baa1ba2c47b37711b9b1/d51572f082025aafe194efb1f8edab64034f1a2f.jpg")!
 //            let gifUrl = URL(fileURLWithPath: Bundle.main.path(forResource: "haicao.gif", ofType: nil)!)
 //            addWaterMark(gifUrl,relativeRect: .init(x: 0.6, y: 0.2, width: 0.3, height: 0))
@@ -226,7 +229,7 @@ extension ViewController {
     }
     
     @discardableResult
-    func addWateMark(image: UIImage,relativeRect: CGRect) -> Self {
+    func addWaterMark(_ image: UIImage,relativeRect: CGRect) -> Self {
         
         performVideoComposition()
         
@@ -634,9 +637,11 @@ extension ViewController {
         
         for i in 0..<frameCount {
             frams.append(CGImageSourceCreateImageAtIndex(gifSource, i, nil)!)
-            let gifDic = dic[kCGImagePropertyGIFDictionary] as! [AnyHashable : Any]
-            delayTimes.append(gifDic[kCGImagePropertyGIFUnclampedDelayTime] as! CGFloat)
-            totalTime += gifDic[kCGImagePropertyGIFUnclampedDelayTime] as! CGFloat
+            let gifDic = dic[kCGImagePropertyGIFDictionary] as? [AnyHashable : Any]
+            if let gifDictionary = gifDic {
+                delayTimes.append(gifDictionary[kCGImagePropertyGIFUnclampedDelayTime] as! CGFloat)
+                totalTime += gifDictionary[kCGImagePropertyGIFUnclampedDelayTime] as! CGFloat
+            }
         }
         
         var currentTime: CGFloat = 0
@@ -651,9 +656,9 @@ extension ViewController {
         }
         
         animation.keyTimes = times
-        animation.values = images
+        animation.values = images.count > 0 ? images : frams
         animation.timingFunction = CAMediaTimingFunction(name: .linear)
-        animation.duration = CFTimeInterval(totalTime)
+        animation.duration = CFTimeInterval(totalTime) == 0 ? 1 : CFTimeInterval(totalTime)
         animation.repeatCount = MAXFLOAT
         return animation
     }
