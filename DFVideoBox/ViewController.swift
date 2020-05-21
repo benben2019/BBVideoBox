@@ -60,6 +60,12 @@ class ViewController: UIViewController {
     }
     
     fileprivate func setUpUI() {
+        let button = UIButton(type: .custom)
+        button.setTitle("预览", for: .normal)
+        button.setTitleColor(.darkText, for: .normal)
+        button.addTarget(self, action: #selector(preview), for: .touchUpInside)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: button)
+        
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cellId")
@@ -128,19 +134,19 @@ extension ViewController: UITableViewDataSource,UITableViewDelegate {
         case 4:
             mixSound(audioTwoPath,at: 3)
         case 5:
-            geerBox(scale: 2)
+            geerBox(2)
         case 6:
             append(R180Path)
         case 7:
             // 裁前10s + 旋转90° + 拼接 + 混音 + 变速 + 裁前6s
-            rangeVideo(to: 10).rotateVideo(90).append(R0Path).append(R90Path).mixSound(audioTwoPath).geerBox(scale: 2)//.rangeVideo(to: 6)
+            rangeVideo(to: 10).rotateVideo(90).append(R0Path).append(R90Path).mixSound(audioTwoPath).geerBox(2)//.rangeVideo(to: 6)
         default:
             print("do nothing...")
         }
 //        print("😀合成完毕！即将输出..")
 //        print(mutableComposition!.tracks(withMediaType: .video))
 //        print(mutableComposition!.tracks(withMediaType: .audio))
-        outPut()
+        outputVideo()
     }
 }
 
@@ -455,7 +461,7 @@ extension ViewController {
     }
     
     @discardableResult
-    func geerBox(scale: Int64) -> Self {
+    func geerBox(_ scale: Int64) -> Self {
         
         // 处理视频
         mutableComposition?.tracks(withMediaType: .video).forEach({ (videoTrack) in
@@ -663,7 +669,7 @@ extension ViewController {
         return animation
     }
     
-    func outPut() {
+    func outputVideo() {
         let exportSession = AVAssetExportSession(asset: mutableComposition!, presetName: AVAssetExportPresetHighestQuality)
         exportSession?.shouldOptimizeForNetworkUse = true
         exportSession?.videoComposition = mutableVideoComposition
@@ -727,5 +733,9 @@ extension ViewController {
                 self.present(alert, animated: true, completion: nil)
             }
         }
+    }
+    
+    @objc func preview() {
+        navigationController?.pushViewController(PreviewController(), animated: true)
     }
 }

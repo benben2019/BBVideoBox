@@ -27,6 +27,7 @@
 		0DF83B452472790100B2F734 /* R0.MOV in Resources */ = {isa = PBXBuildFile; fileRef = 0DF83B382472790100B2F734 /* R0.MOV */; };
 		0DF83B462472790100B2F734 /* audio_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 0DF83B392472790100B2F734 /* audio_2.mp3 */; };
 		0DF83B472472790100B2F734 /* R270.MOV in Resources */ = {isa = PBXBuildFile; fileRef = 0DF83B3A2472790100B2F734 /* R270.MOV */; };
+		0DF83B4924764C8D00B2F734 /* PreviewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DF83B4824764C8D00B2F734 /* PreviewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -52,6 +53,7 @@
 		0DF83B382472790100B2F734 /* R0.MOV */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = R0.MOV; sourceTree = "<group>"; };
 		0DF83B392472790100B2F734 /* audio_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = audio_2.mp3; sourceTree = "<group>"; };
 		0DF83B3A2472790100B2F734 /* R270.MOV */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = R270.MOV; sourceTree = "<group>"; };
+		0DF83B4824764C8D00B2F734 /* PreviewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,6 +91,7 @@
 				0D9633A3246A70BB0096917B /* SceneDelegate.swift */,
 				0D9633A5246A70BB0096917B /* ViewController.swift */,
 				0D9633BB246A97B30096917B /* PlayViewController.swift */,
+				0DF83B4824764C8D00B2F734 /* PreviewController.swift */,
 				0D9633A7246A70BC0096917B /* Main.storyboard */,
 				0D9633AA246A70BE0096917B /* Assets.xcassets */,
 				0D9633AC246A70BF0096917B /* LaunchScreen.storyboard */,
@@ -204,6 +207,7 @@
 				0D9633BC246A97B30096917B /* PlayViewController.swift in Sources */,
 				0D9633A6246A70BB0096917B /* ViewController.swift in Sources */,
 				0D9633A2246A70BB0096917B /* AppDelegate.swift in Sources */,
+				0DF83B4924764C8D00B2F734 /* PreviewController.swift in Sources */,
 				0D9633A4246A70BB0096917B /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
